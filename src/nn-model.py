@@ -1,9 +1,10 @@
 import h5py
 import numpy as np
 import pandas as pd
-from keras.layers import Dense, Dropout, Merge, Input, merge
+from keras.layers import Dense, Dropout, Input, merge
 from  keras.layers.advanced_activations import LeakyReLU
-from keras.models import Sequential, Model
+from keras.models import Model
+from keras.utils.visualize_util import plot
 from sklearn.model_selection import train_test_split
 
 
@@ -34,7 +35,7 @@ def get_data_lanes(df):
     feature_lanes = get_feature_lanes(df.columns)
     data_lanes = []
     for lane in feature_lanes:
-        #print lane
+        # print lane
         data_lanes.append(df[lane].values)
     return data_lanes
 
@@ -77,12 +78,37 @@ with h5py.File('data/data.h5', 'r') as hf:
     X_test = np.array(hf.get('X_test'))
     id_test = np.array(hf.get('id_test'))
 
-df = pd.DataFrame(data=X_train, index=range(X_train.shape[0]), columns=features)
-print len(df.columns), len(features)
-lane_model = get_lane_model(df)
-data_lanes = get_data_lanes(df)
+# Random seed
+seed = 7
+np.random.seed(seed)
 
-nb_epoch = 300
-batch_size = 10000
-history = lane_model.fit(data_lanes, y_train, validation_split=0.2, shuffle=True, nb_epoch=nb_epoch, batch_size=batch_size, verbose=1)
-print history.history
+# Split data
+df = pd.DataFrame(data=X_train, index=range(X_train.shape[0]), columns=features)
+df_train, df_val, y_train, y_val = train_test_split(df, y_train, test_size=0.2, random_state=seed)
+
+# Create model and data
+lane_model = get_lane_model(df_train)
+plot(lane_model, to_file='model.png')
+
+data_lanes_train = get_data_lanes(df_train)
+data_lanes_val = get_data_lanes(df_val)
+
+# Fit the model
+nb_epoch = 1500
+batch_size = 5000
+history = lane_model.fit(data_lanes_train, y_train, validation_data=(data_lanes_val, y_val), validation_split=0.2,
+                         shuffle=True, nb_epoch=nb_epoch, batch_size=batch_size, verbose=1)
+lane_model.train_on_batch(data_lanes_train, y_train)
+print np.min(history.history['val_loss'])
+print lane_model.evaluate(data_lanes_val, y_val)
+
+# last run on batch==all
+# shuffle data on each round
+# standardize
+# use dropout
+# treat categorical
+# save best model
+# relu allows for better optimization, works as good as sigmoid
+# start with 1 layer, building up to three
+# sometimes one large layer works
+# make the middle layer fattter, and the last layer smaller

@@ -20,4 +20,11 @@ Dependencies
 * hd5py
 * numpy
 * pandas
-* sklearn# keras-categorical
+* sklearn
+* pydot 1.0.2
+* graphviz
+
+Vizualization
+-------------
+Keras provides vizualization:
+![Model](model.png)
