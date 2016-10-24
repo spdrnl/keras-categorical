@@ -1,8 +1,10 @@
 import h5py
 import numpy as np
 import pandas as pd
-from keras.layers import Dense, Dropout, Merge
-from keras.models import Sequential
+from keras.layers import Dense, Dropout, Merge, Input, merge
+from  keras.layers.advanced_activations import LeakyReLU
+from keras.models import Sequential, Model
+from sklearn.model_selection import train_test_split
 
 
 def get_feature_lanes(features):
@@ -39,28 +41,30 @@ def get_data_lanes(df):
 
 def get_lane_model(df):
     feature_lanes = get_feature_lanes(df.columns)
+    input_lanes = []
     model_lanes = []
 
     for index, feature_lane in enumerate(feature_lanes):
-        model = Sequential()
+        a = Input(shape=(len(feature_lane),))
+        input_lanes.append(a)
         if index == 0:
-            model.add(Dense(len(feature_lane), input_dim=len(feature_lane), input_shape=len(feature_lane), init='he_normal'))
+            model_lanes.append(a)
         else:
-            model.add(Dense(1, input_dim=len(feature_lane), init='he_normal'))
-        model_lanes.append(model)
+            b = Dense(1, init='he_normal')(a)
+            model_lanes.append(b)
 
-    merged = Merge(model_lanes, mode='concat')
-
-    final_model = Sequential()
-    final_model.add(merged)
-    final_model.add(Dense(200, activation='relu'))
-    final_model.add(Dropout(0.2))
-    final_model.add(Dense(150, activation='relu'))
-    final_model.add(Dropout(0.2))
-    final_model.add(Dense(50, activation='relu'))
-    final_model.add(Dense(1, init='he_normal'))
-    final_model.compile(loss='mae', optimizer='adadelta')
-    return final_model
+    merged = merge(model_lanes, mode='concat')
+    merged = LeakyReLU(0.3)(merged)
+    merged = Dropout(0.2)(merged)
+    merged = Dense(250)(merged)
+    merged = LeakyReLU(0.3)(merged)
+    merged = Dropout(0.2)(merged)
+    merged = Dense(250)(merged)
+    merged = LeakyReLU(0.3)(merged)
+    merged = Dense(1, init='he_normal')(merged)
+    model = Model(input=input_lanes, output=merged)
+    model.compile(loss='mae', optimizer='adadelta')
+    return model
 
 
 ## read data

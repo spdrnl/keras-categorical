@@ -6,7 +6,7 @@ The gist of the project is that categorical features are modelled by replacing e
 
 ![Categorical](cat-nn.png)
 
-This is a practical example of how NN can be made to shape data.
+This is a practical example of how NN can be made to shape data. The code uses the Keras model functional API to build the model.
 
 Note
 ----
@@ -21,8 +21,3 @@ Dependencies
 * numpy
 * pandas
 * sklearn# keras-categorical
-
-TODO
------
-
-* Use the functional model API to get a cleaner solution.
