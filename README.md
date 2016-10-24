@@ -21,3 +21,8 @@ Dependencies
 * numpy
 * pandas
 * sklearn# keras-categorical
+
+TODO
+-----
+
+* Use the functional model API to get a cleaner solution.
